@@ -1,4 +1,4 @@
-﻿package com.bowbarbershop.bow_backend;
+package com.bowbarbershop.bow_backend;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
