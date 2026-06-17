@@ -1,4 +1,4 @@
-package com.bowbarbershop.bow_backend;
+﻿package com.bowbarbershop.bow_backend;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -22,7 +22,10 @@ public class BranchController {
 
     private ResponseEntity<String> get(String path) {
         RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.exchange(supabaseUrl + path, HttpMethod.GET, buildEntity(), String.class);
+        ResponseEntity<String> upstream = restTemplate.exchange(supabaseUrl + path, HttpMethod.GET, buildEntity(), String.class);
+        return ResponseEntity.status(upstream.getStatusCode())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(upstream.getBody());
     }
 
     @GetMapping("/branches")
