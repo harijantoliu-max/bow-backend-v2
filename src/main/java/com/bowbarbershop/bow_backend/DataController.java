@@ -5,6 +5,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.http.*;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.URI;
 import java.util.Set;
 @RestController
 @RequestMapping("/api")
@@ -31,9 +32,10 @@ public class DataController {
             return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"unknown table\"}");
         }
         String url = supabaseUrl + "/" + table + (queryString != null && !queryString.isEmpty() ? "?" + queryString : "");
+        URI uri = URI.create(url);
         HttpEntity<String> entity = new HttpEntity<>(body, buildHeaders(userToken));
         try {
-            ResponseEntity<String> upstream = restTemplate.exchange(url, method, entity, String.class);
+            ResponseEntity<String> upstream = restTemplate.exchange(uri, method, entity, String.class);
             return ResponseEntity.status(upstream.getStatusCode())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(upstream.getBody());
