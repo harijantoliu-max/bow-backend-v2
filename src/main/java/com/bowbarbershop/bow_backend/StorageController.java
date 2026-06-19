@@ -2,7 +2,7 @@ package com.bowbarbershop.bow_backend;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +19,11 @@ public class StorageController {
     @PostMapping("/{bucket}/{filename}")
     public ResponseEntity<String> upload(@PathVariable String bucket, @PathVariable String filename, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
         try {
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"error\":\"file is empty or missing\"}");
+            }
+
             String userToken = request.getHeader("X-Supabase-Auth");
             String authToken = (userToken != null && !userToken.isEmpty()) ? userToken : supabaseKey;
             HttpHeaders headers = new HttpHeaders();
@@ -30,14 +35,32 @@ public class StorageController {
             HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
             RestTemplate restTemplate = new RestTemplate();
             String url = supabaseUrl + "/" + bucket + "/" + filename;
+
             ResponseEntity<String> upstream = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
             return ResponseEntity.status(upstream.getStatusCode())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(upstream.getBody());
+
         } catch (IOException e) {
-            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"" + e.getMessage() + "\"}");
-        } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(e.getResponseBodyAsString());
+            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"io_error\",\"message\":\"" + escape(e.getMessage()) + "\"}");
+
+        } catch (HttpStatusCodeException e) {
+            // Covers BOTH 4xx (HttpClientErrorException) AND 5xx (HttpServerErrorException) from Supabase
+            return ResponseEntity.status(e.getStatusCode())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(e.getResponseBodyAsString());
+
+        } catch (Exception e) {
+            // Catch-all so we never leak a generic Spring 500 page again
+            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"unexpected_error\",\"exception\":\"" + e.getClass().getSimpleName()
+                            + "\",\"message\":\"" + escape(e.getMessage()) + "\"}");
         }
+    }
+
+    private String escape(String s) {
+        if (s == null) return "";
+        return s.replace("\"", "'").replace("\n", " ");
     }
 }
