@@ -13,8 +13,8 @@ import java.io.IOException;
 @CrossOrigin(origins = "*")
 public class StorageController {
 
-    private final String supabaseUrl = "https://gupvljmvyjckseuycwfb.supabase.co/storage/v1/object";
-    private final String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1cHZsam12eWpja3NldXljd2ZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MTkyNjksImV4cCI6MjA5NjI5NTI2OX0._ABTAY5gKkMA7NSYQ_aF8nA7l38OeZp3dIWLuG15x9g";
+    private final String supabaseUrl = System.getenv("SUPABASE_URL") + "/storage/v1/object";
+    private final String supabaseKey = System.getenv("SUPABASE_ANON_KEY");
 
     @PostMapping("/{bucket}/{filename}")
     public ResponseEntity<String> upload(@PathVariable String bucket, @PathVariable String filename, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
@@ -46,13 +46,11 @@ public class StorageController {
                     .body("{\"error\":\"io_error\",\"message\":\"" + escape(e.getMessage()) + "\"}");
 
         } catch (HttpStatusCodeException e) {
-            // Covers BOTH 4xx (HttpClientErrorException) AND 5xx (HttpServerErrorException) from Supabase
             return ResponseEntity.status(e.getStatusCode())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(e.getResponseBodyAsString());
 
         } catch (Exception e) {
-            // Catch-all so we never leak a generic Spring 500 page again
             return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON)
                     .body("{\"error\":\"unexpected_error\",\"exception\":\"" + e.getClass().getSimpleName()
                             + "\",\"message\":\"" + escape(e.getMessage()) + "\"}");

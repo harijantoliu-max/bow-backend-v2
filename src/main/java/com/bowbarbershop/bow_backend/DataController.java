@@ -11,8 +11,8 @@ import java.util.Set;
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class DataController {
-    private final String supabaseUrl = "https://gupvljmvyjckseuycwfb.supabase.co/rest/v1";
-    private final String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1cHZsam12eWpja3NldXljd2ZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MTkyNjksImV4cCI6MjA5NjI5NTI2OX0._ABTAY5gKkMA7NSYQ_aF8nA7l38OeZp3dIWLuG15x9g";
+    private final String supabaseUrl = System.getenv("SUPABASE_URL") + "/rest/v1";
+    private final String supabaseKey = System.getenv("SUPABASE_ANON_KEY");
     private static final Set<String> ALLOWED_TABLES = Set.of(
         "branches", "services", "barbers", "bookings", "profiles",
         "memberships", "barber_off_days", "reviews"
