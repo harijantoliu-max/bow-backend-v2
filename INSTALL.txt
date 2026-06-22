@@ -1,0 +1,39 @@
+==========================================================
+BOW BACKEND - UPGRADE KE MULTI-MODULE (bow-shared + bow-app)
+==========================================================
+
+APA YANG BERUBAH:
+- Sekarang project punya 2 modul: bow-shared + bow-app
+- bow-shared : kode koneksi Supabase (dipakai bersama, anti-copas)
+- bow-app    : aplikasi web (semua controller + main)
+- pom.xml di root sekarang jadi "parent" yang ngatur 2 modul itu
+- Dockerfile sudah disesuaikan (lokasi jar pindah ke bow-app/target)
+- Runtime TIDAK diubah: port 3000, bind 0.0.0.0 (setting anti-502 dipertahankan)
+
+CARA PASANG (ikuti urut, jangan loncat):
+
+1. BACKUP DULU
+   Zip / copy seluruh folder bow-backend-v2 ke tempat aman.
+   (Kalau ada apa-apa, tinggal balik ke backup.)
+
+2. HAPUS FOLDER src LAMA DI ROOT
+   Folder: C:\Users\harij\bow-backend-v2\src
+   (Isinya sudah dipindah ke dalam bow-app. Jangan hapus yang lain.)
+
+3. EXTRACT paket ini ke C:\Users\harij\bow-backend-v2
+   Saat ditanya "replace file?" untuk pom.xml & Dockerfile -> pilih YA.
+
+4. TES BUILD DI LAPTOP (pakai Maven kamu)
+   Buka cmd di folder itu, jalankan:
+     mvn clean package -DskipTests
+   Berhasil kalau muncul: BUILD SUCCESS
+   dan ada file di: bow-app\target\bow-app-0.0.1-SNAPSHOT.jar
+
+5. PUSH KE GITHUB -> Railway auto-deploy
+     git add .
+     git commit -m "Refactor jadi multi-module (bow-shared + bow-app)"
+     git push
+
+6. TES ENDPOINT setelah deploy:
+     https://<domain-railway-kamu>/api/hello
+   Harus muncul: BOW Barbershop Backend is running!
